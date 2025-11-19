@@ -10,7 +10,7 @@
 <body>
 
 <header>
-  <h1>サザエさんじゃんけん</h1>
+  <h1>スゴロクじゃんけん</h1>
 </header>
 
 <main>
@@ -20,7 +20,7 @@
     <h2>じゃんけんで遊ぼう！</h2>
     <div id="display_area">
       <!-- 初期表示は動画だけ -->
-      <video id="janken_movie" src="movie/janken_movie.mp4" controls width="600"></video>
+      <video id="janken_movie" src="movie/janken2_movie.mp4" controls width="400"></video>
     </div>
   </div>
 
@@ -223,17 +223,17 @@ $(function(){
 
     if(r == 1){
         // CPU:グー → あいこ
-        showResult("img/gu.jpeg", "あいこ");
+        showResult("img/gu.png", "あいこ");
         moveWinner("none", playerHand);
     }
     if(r == 2){
         // CPU:チョキ → 勝ち
-        showResult("img/tyoki.jpeg", "勝ち");
+        showResult("img/tyoki.png", "勝ち");
         moveWinner("player", playerHand);
     }
     if(r == 3){
         // CPU:パー → 負け
-        showResult("img/pa-.jpeg", "負け");
+        showResult("img/pa-.png", "負け");
         moveWinner("cpu", cpuHand);
     }
   });
@@ -251,17 +251,17 @@ $(function(){
 
     if(r == 1){
         // CPU:グー → 負け
-        showResult("img/gu.jpeg", "負け");
+        showResult("img/gu.png", "負け");
         moveWinner("cpu", cpuHand);
     }
     if(r == 2){
         // CPU:チョキ → あいこ
-        showResult("img/tyoki.jpeg", "あいこ");
+        showResult("img/tyoki.png", "あいこ");
         moveWinner("none", playerHand);
     }
     if(r == 3){
         // CPU:パー → 勝ち
-        showResult("img/pa-.jpeg", "勝ち");
+        showResult("img/pa-.png", "勝ち");
         moveWinner("player", playerHand);
     }
   });
@@ -279,17 +279,17 @@ $(function(){
 
     if(r == 1){
         // CPU:グー → 勝ち
-        showResult("img/tyoki.jpeg", "負け");
+        showResult("img/tyoki.png", "負け");
         moveWinner("cpu", cpuHand);
     }
     if(r == 2){
         // CPU:チョキ → 負け
-        showResult("img/gu.jpeg", "勝ち");
+        showResult("img/gu.png", "勝ち");
         moveWinner("player", playerHand);
     }
     if(r == 3){
         // CPU:パー → あいこ
-        showResult("img/pa-.jpeg", "あいこ");
+        showResult("img/pa-.png", "あいこ");
         moveWinner("none", playerHand);
     }
   });
@@ -299,10 +299,10 @@ $(function(){
   // =====================
   $("#reset_btn").on("click", function() {
     // ① display_area を動画に戻す
-    $("#display_area").html('<video id="janken_movie" src="movie/janken_movie.mp4" controls width="400"></video>');
+    $("#display_area").html('<video id="janken2_movie" src="movie/janken2_movie.mp4" controls width="400"></video>');
 
     // ② 動画を自動再生
-    const v = document.getElementById("janken_movie");
+    const v = document.getElementById("janken2_movie");
     if (v) {
       v.play();
     }
@@ -316,9 +316,9 @@ $(function(){
 
   $("#next_btn").on("click", function() {
     // 動画を差し替えて再生するが、すごろくの位置はそのまま
-    $("#display_area").html('<video id="janken_movie" src="movie/janken_movie.mp4" controls width="400"></video>');
+    $("#display_area").html('<video id="janken2_movie" src="movie/janken2_movie.mp4" controls width="400"></video>');
 
-    const v2 = document.getElementById("janken_movie");
+    const v2 = document.getElementById("janken2_movie");
     if (v2) {
       v2.play();
     }
