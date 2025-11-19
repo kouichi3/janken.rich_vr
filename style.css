@@ -125,7 +125,8 @@ li:hover{
   text-align: center;
 }
 
-#reset_btn {
+#reset_btn,
+#next_btn {
   padding: 10px 24px;
   font-size: 16px;
   border-radius: 20px;
@@ -133,9 +134,97 @@ li:hover{
   background: #fff;
   cursor: pointer;
   transition: 0.2s;
+  margin: 0 4px;
 }
 
-#reset_btn:hover {
+#reset_btn:hover,
+#next_btn:hover {
   background: #f5f5f5;
   transform: scale(1.05);
+}
+
+/* ===== ここから すごろく盤面のスタイル ===== */
+.board {
+  width: 560px;              /* ちょっと横長にしてボードっぽく */
+  margin: 20px auto;
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;                  /* マス同士のすき間 */
+  background: #fdf5d5;       /* 人生ゲームっぽい台紙色 */
+  border-radius: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.cell {
+  width: 80px;               /* 長方形のマスにする */
+  height: 50px;
+  border: 2px solid #ffb74d;
+  box-sizing: border-box;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;        /* 駒アイコンを重ねるため */
+  border-radius: 12px;       /* 角を丸く */
+  background: linear-gradient(135deg, #fffde7, #ffe0b2);
+  text-shadow: 0 1px 0 #fff;
+}
+
+
+.cell.player {
+  background: #ffeb3b; /* 黄色 */
+}
+
+.cell.cpu {
+  background: #b3e5fc; /* 水色 */
+}
+
+.cell.player.cpu {
+  background: #ffcdd2; /* 両方乗ったときはピンク */
+}
+
+.start-cell {
+  border-color: #4caf50;
+  background: linear-gradient(135deg, #e8f5e9, #a5d6a7);
+  font-weight: bold;
+}
+
+.goal-cell {
+  border-color: #e91e63;
+  background: linear-gradient(135deg, #fce4ec, #f48fb1);
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.event-cell {
+  border-style: dashed;
+  border-color: #29b6f6;
+  background: linear-gradient(135deg, #e3f2fd, #b3e5fc);
+}
+
+.piece {
+  position: absolute;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.player-piece {
+  bottom: 2px;
+  left: 2px;
+}
+
+.cpu-piece {
+  top: 2px;
+  right: 2px;
+}
+
+.info-area {
+  margin: 10px auto 20px;
+}
+
+.info-area p {
+  font-size: 16px; /* 全体の p より少し小さめに調整 */
+  margin: 4px 0;
 }

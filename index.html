@@ -14,118 +14,319 @@
 </header>
 
 <main>
-<!-- ▼ ここから追加する部分 ▼ -->
 
-<div class="intro-block">
-  <h2>じゃんけんで遊ぼう！</h2>
+  <!-- 説明＋動画ブロック -->
+  <div class="intro-block">
+    <h2>じゃんけんで遊ぼう！</h2>
+    <div id="display_area">
+      <!-- 初期表示は動画だけ -->
+      <video id="janken_movie" src="movie/janken_movie.mp4" controls width="600"></video>
+    </div>
+  </div>
 
-  <!-- 動画を入れる -->
-  <div id="display_area">
-    <!-- 初期表示は動画だけ -->
-    <video id="janken_movie" src="movie/janken_movie.mp4" controls width="600"></video>
-  </div>  <!-- ★ これが display_area の閉じタグ -->
+  <!-- ★ ここにグリコすごろく盤面と状況表示を追加 ★ -->
+  <div id="board" class="board"></div>
 
+  <div class="info-area">
+    <p id="position_info">プレイヤー: 0マス / コンピューター: 0マス</p>
+    <p id="log">勝った方だけ進むよ！</p>
+  </div>
 
-</div>      <!-- ★ これが intro-block の閉じタグ -->
+  <!-- じゃんけんの結果表示 -->
+  <div class="result-area">
+    <p id="pc_hands"></p>
+    <p id="judgment"></p>
+  </div>
 
-<!-- ▲ 追加部分ここまで ▲ -->
+  <!-- じゃんけんボタン -->
+  <ul class="ur-box">
+    <li id="gu_btn">グー</li>
+    <li id="cho_btn">チョキ</li>
+    <li id="par_btn">パー</li>
+  </ul>
 
-<div class="result-area">
-  <p id="pc_hands"></p>
-  <p id="judgment"></p>
-</div>
-
-<!-- ▼ そのまま既存のじゃんけんボタン ▼ -->
-<ul class="ur-box">
-  <li id="gu_btn">グー</li>
-  <li id="cho_btn">チョキ</li>
-  <li id="par_btn">パー</li>
-</ul>
-<!-- リセットボタン：動画に戻す -->
-<div class="reset-area">
-  <button id="reset_btn">リセット（もう一度動画から）</button>
-</div>
-
-
+  <!-- リセットボタン：動画＋すごろくを最初に戻す＆次のじゃんけんボタン -->
+  <div class="reset-area">
+    <button id="reset_btn">リセット（全部最初から）</button>
+    <button id="next_btn">次のじゃんけん（動画再生）</button>
+  </div>
 
 </main>
 
 <footer></footer>
+
 <script>
-// じゃんけん共通で使う「表示用の関数」を作っておくとラク
-function showResult(imgSrc, text) {
-  // ★ 動画が入っていた枠ごと、画像に置き換える
-  $("#display_area").html('<img src="' + imgSrc + '" alt="' + text + '" width="400">');
-  $("#judgment").text(text);
-}
+$(function(){
+  // =====================
+  // すごろく用の変数・関数
+  // =====================
+  var GOAL = 20;          // ゴールマス
+  var playerPos = 0;      // プレイヤーの位置
+  var cpuPos = 0;         // CPUの位置
+  var isGameOver = false; // ゴールしたら true
 
-// グーボタン
-$("#gu_btn").on("click",function(){
-    const r = Math.ceil(Math.random()*3);
+  var lastPlayerHand = null; // プレイヤーが直前に出した手
+  var lastCpuHand = null;    // CPUが直前に出した手
 
-    if(r == 1){
-        // あいこ
-        showResult("img/gu.jpeg", "あいこ");
-    }
-    if(r == 2){
-        // 勝ち
-        showResult("img/tyoki.jpeg", "勝ち");
-    }
-    if(r == 3){
-        // 負け
-        showResult("img/pa-.jpeg", "負け");
-    }
-});
+  // 手ごとの進むマス数
+  var handStepMap = {
+    "gu": 1,
+    "cho": 2,
+    "par": 3
+  };
 
-// チョキボタン
-$("#cho_btn").on("click",function(){
-    const r = Math.ceil(Math.random()*3);
+  var handNameMap = {
+    "gu": "グー",
+    "cho": "チョキ",
+    "par": "パー"
+  };
 
-    if(r == 1){
-        // 負け
-        showResult("img/gu.jpeg", "負け");
-    }
-    if(r == 2){
-        // あいこ
-        showResult("img/tyoki.jpeg", "あいこ");
-    }
-    if(r == 3){
-        // 勝ち
-        showResult("img/pa-.jpeg", "勝ち");
-    }
-});
-
-// パーボタン
-$("#par_btn").on("click",function(){
-    const r = Math.ceil(Math.random()*3);
-
-    if(r == 1){
-        // 勝ち
-        showResult("img/tyoki.jpeg", "勝ち");
-    }
-    if(r == 2){
-        // 負け
-        showResult("img/gu.jpeg", "負け");
-    }
-    if(r == 3){
-        // あいこ
-        showResult("img/pa-.jpeg", "あいこ");
-    }
-});
-
-// リセットボタン：動画に戻す（自動再生）
-$("#reset_btn").on("click", function() {
-  // ① まず動画タグを差し込む
-  $("#display_area").html('<video id="janken_movie" src="movie/janken_movie.mp4" controls width="400"></video>');
-  
-  // ② 直後にそのvideo要素を取得して再生
-  const v = document.getElementById("janken_movie");
-  if (v) {
-    v.play();
+  function getHandIcon(hand, who){
+    if(hand === "gu") return "✊";
+    if(hand === "cho") return "✌️";
+    if(hand === "par") return "✋";
+    // まだ一度も出していないときの初期アイコン
+    if(who === "player") return "👤";
+    if(who === "cpu") return "🤖";
+    return "●";
   }
 
-  // ③ 勝ち負け表示をクリア
-  $("#judgment").text("");
+  // 盤面を作る
+  function createBoard(){
+    $("#board").empty();
+    for(var i = 0; i <= GOAL; i++){
+      var text = "";
+      var extraClass = "";
+
+      if(i === 0){
+        text = "スタート";
+        extraClass = " start-cell";
+      }else if(i === GOAL){
+        text = "ゴール";
+        extraClass = " goal-cell";
+      }else{
+        text = i;
+        // 人生ゲームっぽく、ところどころイベントマスを付ける
+        if(i % 5 === 0){
+          extraClass = " event-cell";
+        }
+      }
+
+      $("#board").append('<div class="cell'+ extraClass +'" data-index="'+i+'">'+ text +'</div>');
+    }
+  }
+
+  // 駒の表示を更新
+  function updateBoard(){
+    $(".cell").removeClass("player cpu");
+    $(".piece").remove(); // 駒アイコンを一度クリア
+
+    if(playerPos > GOAL) playerPos = GOAL;
+    if(cpuPos > GOAL) cpuPos = GOAL;
+
+    $('.cell[data-index="'+playerPos+'"]').addClass("player");
+    $('.cell[data-index="'+cpuPos+'"]').addClass("cpu");
+
+    // それぞれの駒アイコンを表示
+    var playerIcon = getHandIcon(lastPlayerHand, "player");
+    var cpuIcon = getHandIcon(lastCpuHand, "cpu");
+
+    $('.cell[data-index="'+playerPos+'"]').append('<div class="piece player-piece">'+ playerIcon +'</div>');
+    $('.cell[data-index="'+cpuPos+'"]').append('<div class="piece cpu-piece">'+ cpuIcon +'</div>');
+
+    $("#position_info").text(
+      "プレイヤー: " + playerPos + "マス / コンピューター: " + cpuPos + "マス"
+    );
+  }
+
+  // ゴール判定
+  function checkWinnerSugoroku(){
+    if(playerPos >= GOAL && cpuPos >= GOAL){
+      $("#log").text("同時にゴール！引き分け！");
+      isGameOver = true;
+    }else if(playerPos >= GOAL){
+      $("#log").text("プレイヤーの勝ち！！");
+      isGameOver = true;
+    }else if(cpuPos >= GOAL){
+      $("#log").text("コンピューターの勝ち…");
+      isGameOver = true;
+    }
+  }
+
+  // 勝った方だけ進める
+  function moveWinner(winner, winnerHand){
+    if(isGameOver) return; // もうゴールしていたら動かさない
+
+    if(winner === "none"){
+      $("#log").text("あいこで、誰も進まない…");
+      return;
+    }
+
+    var step = handStepMap[winnerHand];
+
+    if(winner === "player"){
+      playerPos += step;
+      $("#log").text("あなたが" + step + "マス進んだ！");
+    }else if(winner === "cpu"){
+      cpuPos += step;
+      $("#log").text("コンピューターが" + step + "マス進んだ！");
+    }
+
+    updateBoard();
+    checkWinnerSugoroku();
+  }
+
+  // すごろくのリセット
+  function resetSugoroku(){
+    playerPos = 0;
+    cpuPos = 0;
+    isGameOver = false;
+    lastPlayerHand = null;
+    lastCpuHand = null;
+    $("#log").text("勝った方だけ進むよ！");
+    createBoard();
+    updateBoard();
+  }
+
+  // r(1〜3) からCPUの手を求める
+  function cpuHandFromR(r){
+    if(r === 1) return "gu";
+    if(r === 2) return "cho";
+    return "par";
+  }
+
+  // 最初に盤面を作っておく
+  resetSugoroku();
+
+  // =====================
+  // じゃんけん表示共通関数
+  // =====================
+  function showResult(imgSrc, text) {
+    // 動画が入っていた枠ごと、画像に置き換える
+    $("#display_area").html('<img src="' + imgSrc + '" alt="' + text + '" width="400">');
+    $("#judgment").text(text);
+  }
+
+  // =====================
+  // じゃんけんボタン
+  // =====================
+  // グーボタン
+  $("#gu_btn").on("click",function(){
+    if(isGameOver) return; // ゴール後は動かさない
+
+    const r = Math.ceil(Math.random()*3); // CPUの手
+    var cpuHand = cpuHandFromR(r);
+    var playerHand = "gu";
+
+    lastPlayerHand = playerHand;
+    lastCpuHand = cpuHand;
+
+    if(r == 1){
+        // CPU:グー → あいこ
+        showResult("img/gu.jpeg", "あいこ");
+        moveWinner("none", playerHand);
+    }
+    if(r == 2){
+        // CPU:チョキ → 勝ち
+        showResult("img/tyoki.jpeg", "勝ち");
+        moveWinner("player", playerHand);
+    }
+    if(r == 3){
+        // CPU:パー → 負け
+        showResult("img/pa-.jpeg", "負け");
+        moveWinner("cpu", cpuHand);
+    }
+  });
+
+  // チョキボタン
+  $("#cho_btn").on("click",function(){
+    if(isGameOver) return;
+
+    const r = Math.ceil(Math.random()*3);
+    var cpuHand = cpuHandFromR(r);
+    var playerHand = "cho";
+
+    lastPlayerHand = playerHand;
+    lastCpuHand = cpuHand;
+
+    if(r == 1){
+        // CPU:グー → 負け
+        showResult("img/gu.jpeg", "負け");
+        moveWinner("cpu", cpuHand);
+    }
+    if(r == 2){
+        // CPU:チョキ → あいこ
+        showResult("img/tyoki.jpeg", "あいこ");
+        moveWinner("none", playerHand);
+    }
+    if(r == 3){
+        // CPU:パー → 勝ち
+        showResult("img/pa-.jpeg", "勝ち");
+        moveWinner("player", playerHand);
+    }
+  });
+
+  // パーボタン
+  $("#par_btn").on("click",function(){
+    if(isGameOver) return;
+
+    const r = Math.ceil(Math.random()*3);
+    var cpuHand = cpuHandFromR(r);
+    var playerHand = "par";
+
+    lastPlayerHand = playerHand;
+    lastCpuHand = cpuHand;
+
+    if(r == 1){
+        // CPU:グー → 勝ち
+        showResult("img/tyoki.jpeg", "負け");
+        moveWinner("cpu", cpuHand);
+    }
+    if(r == 2){
+        // CPU:チョキ → 負け
+        showResult("img/gu.jpeg", "勝ち");
+        moveWinner("player", playerHand);
+    }
+    if(r == 3){
+        // CPU:パー → あいこ
+        showResult("img/pa-.jpeg", "あいこ");
+        moveWinner("none", playerHand);
+    }
+  });
+
+  // =====================
+  // リセットボタン
+  // =====================
+  $("#reset_btn").on("click", function() {
+    // ① display_area を動画に戻す
+    $("#display_area").html('<video id="janken_movie" src="movie/janken_movie.mp4" controls width="400"></video>');
+
+    // ② 動画を自動再生
+    const v = document.getElementById("janken_movie");
+    if (v) {
+      v.play();
+    }
+
+    // ③ 勝ち負け表示クリア
+    $("#judgment").text("");
+
+    // ④ すごろくもリセット
+    resetSugoroku();
+  });
+
+  $("#next_btn").on("click", function() {
+    // 動画を差し替えて再生するが、すごろくの位置はそのまま
+    $("#display_area").html('<video id="janken_movie" src="movie/janken_movie.mp4" controls width="400"></video>');
+
+    const v2 = document.getElementById("janken_movie");
+    if (v2) {
+      v2.play();
+    }
+
+    // 前回の勝敗テキストだけ消しておく（お好み）
+    $("#judgment").text("");
+  });
+
 });
 </script>
 </body>
